@@ -1,7 +1,4 @@
-// Finance data store (local-first).
-// Everything is persisted via AsyncStorage via @/src/utils/storage.
-// Arrays are JSON-stringified because the storage helper only accepts
-// primitives (string | number | boolean | null).
+// Finance data store connected to FastAPI / MongoDB Atlas (Render).
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
@@ -10,13 +7,15 @@ import { DEFAULT_CATEGORIES } from "@/src/lib/categories";
 import { daysAgoISO, todayISO } from "@/src/lib/dates";
 import { Category, Expense, FixedExpense } from "@/src/types";
 
+// URL DO SEU BACKEND NO RENDER
+const API_URL = "https://gastos-app-backend.onrender.com";
+
 const KEY_EXPENSES = "cf:expenses";
 const KEY_CATEGORIES = "cf:categories";
 const KEY_FIXED = "cf:fixed";
 const KEY_SEEDED = "cf:seeded";
 
 function uid(): string {
-  // RFC4122 v4-ish, enough for local ids
   const rand = () =>
     Math.floor(Math.random() * 1e9)
       .toString(36)
@@ -43,7 +42,6 @@ async function seedIfNeeded(): Promise<void> {
   if (seeded) return;
   await saveJSON(KEY_CATEGORIES, DEFAULT_CATEGORIES);
 
-  // Build sample expenses for the last 7 days.
   const samples: Omit<Expense, "id" | "createdAt">[] = [
     { amount: 35, categoryId: "cat-alimentacao", date: todayISO(), description: "Almoço" },
     { amount: 22.5, categoryId: "cat-transporte", date: todayISO(), description: "Uber" },
@@ -127,12 +125,26 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
   const [fixed, setFixed] = useState<FixedExpense[]>([]);
 
   const reload = useCallback(async () => {
-    const [e, c, f] = await Promise.all([
-      loadJSON<Expense[]>(KEY_EXPENSES, []),
+    try {
+      // 1. Tenta procurar os dados atualizados diretamente do Backend no Render
+      const res = await fetch(`${API_URL}/api/expenses`);
+      if (res.ok) {
+        const remoteExpenses = await res.json();
+        setExpenses(remoteExpenses);
+        await saveJSON(KEY_EXPENSES, remoteExpenses);
+      } else {
+        throw new Error("Falha ao procurar dados remotos");
+      }
+    } catch {
+      // 2. Se a API estiver offline ou indisponível, usa a cópia do AsyncStorage
+      const localExpenses = await loadJSON<Expense[]>(KEY_EXPENSES, []);
+      setExpenses(localExpenses);
+    }
+
+    const [c, f] = await Promise.all([
       loadJSON<Category[]>(KEY_CATEGORIES, DEFAULT_CATEGORIES),
       loadJSON<FixedExpense[]>(KEY_FIXED, []),
     ]);
-    setExpenses(e);
     setCategories(c);
     setFixed(f);
   }, []);
@@ -151,6 +163,17 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const updated = [next, ...expenses];
       setExpenses(updated);
       await saveJSON(KEY_EXPENSES, updated);
+
+      // Envia a nova despesa para a API do Render / MongoDB
+      try {
+        await fetch(`${API_URL}/api/expenses`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(next),
+        });
+      } catch (err) {
+        console.error("Erro ao sincronizar nova despesa com a API:", err);
+      }
     },
     [expenses],
   );
@@ -160,6 +183,17 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const updated = expenses.map((e) => (e.id === id ? { ...e, ...patch } : e));
       setExpenses(updated);
       await saveJSON(KEY_EXPENSES, updated);
+
+      // Atualiza na API
+      try {
+        await fetch(`${API_URL}/api/expenses/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(patch),
+        });
+      } catch (err) {
+        console.error("Erro ao atualizar despesa na API:", err);
+      }
     },
     [expenses],
   );
@@ -169,6 +203,15 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const updated = expenses.filter((e) => e.id !== id);
       setExpenses(updated);
       await saveJSON(KEY_EXPENSES, updated);
+
+      // Elimina na API
+      try {
+        await fetch(`${API_URL}/api/expenses/${id}`, {
+          method: "DELETE",
+        });
+      } catch (err) {
+        console.error("Erro ao eliminar despesa na API:", err);
+      }
     },
     [expenses],
   );
@@ -197,7 +240,6 @@ export function FinanceProvider({ children }: { children: React.ReactNode }) {
       const updated = categories.filter((c) => c.id !== id);
       setCategories(updated);
       await saveJSON(KEY_CATEGORIES, updated);
-      // Reassign orphan expenses to "Outros" if exists; else first remaining.
       const fallback = updated.find((c) => c.id === "cat-outros") ?? updated[0];
       if (fallback) {
         const reassigned = expenses.map((e) =>
@@ -291,7 +333,6 @@ export function useCategoryMap() {
   }, [categories]);
 }
 
-// Aggregation helpers
 export function sumInRange(expenses: Expense[], startISO: string, endISO: string): number {
   return expenses
     .filter((e) => e.date >= startISO && e.date <= endISO)
