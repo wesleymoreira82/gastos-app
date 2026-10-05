@@ -1,0 +1,162 @@
+{
+  "app_name": "Controle Financeiro",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "A sleek, command-center dark UI where financial metrics dominate with high contrast and zero decorative friction.",
+  "color": {
+    "surface": "#09090B",
+    "onSurface": "#FAFAFA",
+    "surfaceSecondary": "#18181B",
+    "onSurfaceSecondary": "#F4F4F5",
+    "surfaceTertiary": "#27272A",
+    "onSurfaceTertiary": "#E4E4E7",
+    "surfaceInverse": "#FAFAFA",
+    "onSurfaceInverse": "#09090B",
+    "brand": "#FFFFFF",
+    "onBrand": "#000000",
+    "brandPrimary": "#FFFFFF",
+    "onBrandPrimary": "#09090B",
+    "brandSecondary": "#27272A",
+    "onBrandSecondary": "#FAFAFA",
+    "brandTertiary": "#3F3F46",
+    "onBrandTertiary": "#FAFAFA",
+    "success": "#22C55E",
+    "onSuccess": "#000000",
+    "warning": "#F59E0B",
+    "onWarning": "#000000",
+    "error": "#EF4444",
+    "onError": "#FFFFFF",
+    "info": "#FAFAFA",
+    "onInfo": "#09090B",
+    "border": "#27272A",
+    "borderStrong": "#3F3F46",
+    "divider": "#27272A",
+    "muted": "#A1A1AA"
+  },
+  "typography": {
+    "displayFontFamily": "Space Grotesk",
+    "textFontFamily": "Geist",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24,
+      "3xl": 48
+    }
+  },
+  "spacing": {
+    "rule": "Use tight vertical rhythm for data rows, generous padding for the main hero metric. Keep structural padding uniform.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": false,
+    "do's": [
+      "Use solid dark surfaces (surfaceSecondary/surfaceTertiary) instead of glass to maintain high utility and deep contrast."
+    ],
+    "dont's": [
+      "Avoid blur, overlays, and glassmorphism. Data must be crystal clear."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-blur",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "Início (Home)",
+      "purpose": "Extremely objective view of today's spending, followed by quick metrics and the main CTA.",
+      "states": {
+        "loading": "Centered minimalist spinner in white.",
+        "empty": "N/A - The dashboard starts at R$ 0,00.",
+        "error": "Simple text message with a 'Tentar novamente' button."
+      },
+      "layout": "Vertical Stack. Top: Small text 'Hoje' (muted), followed by a massive 3xl 'R$ 87,50' in Space Grotesk (onSurface). Below: A row with total month, daily average, and # of expenses today. Bottom: Fixed huge white FAB (+) for instant entry."
+    },
+    {
+      "name": "Gastos (Transactions)",
+      "purpose": "List of all expenses and income, grouped by date.",
+      "states": {
+        "loading": "Skeleton rows (surfaceTertiary blocks).",
+        "empty": "Illustration of dark abstract shapes + 'Nenhum gasto registrado'.",
+        "error": "Error fetching transactions."
+      },
+      "layout": "Sticky date headers (e.g., 'Hoje', 'Ontem') over scrolling lists. Each row: Icon in a brandTertiary circle, category name, and amount (Green for income, Red for expense)."
+    },
+    {
+      "name": "Gráficos (Charts)",
+      "purpose": "Visual analysis of spending behavior.",
+      "states": {
+        "loading": "Skeleton chart.",
+        "empty": "No data to show yet.",
+        "error": "Failed to load charts."
+      },
+      "layout": "Segmented control at the top (7, 14, 30 days). Below: Minimalist bar chart. Further down: A donut chart for categories, using distinct neutral and semantic colors."
+    },
+    {
+      "name": "Configurações (Settings)",
+      "purpose": "Manage categories, recurring expenses, and general app settings.",
+      "states": {
+        "loading": "Spinner.",
+        "empty": "N/A",
+        "error": "Error loading settings."
+      },
+      "layout": "Standard grouped list layout. surfaceSecondary cards with border dividers. Rows include icons and chevrons."
+    },
+    {
+      "name": "Add Transaction Modal",
+      "purpose": "Lightning-fast input for new expenses.",
+      "states": {
+        "loading": "Saving...",
+        "empty": "N/A",
+        "error": "Validation error text."
+      },
+      "layout": "Bottom sheet or full screen modal. Massive amount input taking up top 40%. Below: category grid. Bottom: Sticky Save button."
+    }
+  ],
+  "images": {
+    "empty_state_abstract": {
+      "url": "https://images.unsplash.com/photo-1637946175559-22c4fe13fc54?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwZGFyayUyMGFic3RyYWN0JTIwM2QlMjBzaGFwZSUyMGlzb2xhdGVkJTIwb24lMjBibGFja3xlbnwwfHx8fDE3OTExNjk4MzV8MA&ixlib=rb-4.1.0&q=85",
+      "dark": "https://images.unsplash.com/photo-1637946175559-22c4fe13fc54?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzNzl8MHwxfHNlYXJjaHwyfHxtaW5pbWFsaXN0JTIwZGFyayUyMGFic3RyYWN0JTIwM2QlMjBzaGFwZSUyMGlzb2xhdGVkJTIwb24lMjBibGFja3xlbnwwfHx8fDE3OTExNjk4MzV8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Minimalist dark 3D architectural fins"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the Dark-First Utility structure. The app is default dark. Backgrounds must use #09090B and #18181B. DO NOT use generic AI blue or purple.",
+    "Implement Space Grotesk for all monetary values and numbers. Use Geist for standard UI text.",
+    "The Home screen metric 'R$ XX,XX' should be massive (use the 3xl or larger custom size) and must be the absolute focal point of the screen.",
+    "Positive values/incomes MUST be #22C55E (Green). Negative values/expenses MUST be #EF4444 (Red).",
+    "Keep the primary brand color to White (#FFFFFF) for the main floating '+' action button to ensure an elegant monochrome feel with financial semantic accents.",
+    "The bottom navigation contains 4 tabs: Início, Gastos, Gráficos, Configurações. Place a prominent floating Action Button (+) anchored at the bottom center or immediately above the tab bar.",
+    "Ensure all text is in pt-BR as requested.",
+    "For empty states, use the provided dark 3D abstract shape to keep the sophisticated, clean aesthetic.",
+    "Do not use glassmorphism or blur effects for this specific aesthetic; use solid dark hex codes for overlays and sheets to maintain a sharp, utilitarian feel."
+  ],
+  "haptics": {
+    "tab_press": "light",
+    "button_press": "medium",
+    "transaction_save_success": "success",
+    "number_pad_tap": "light"
+  }
+}

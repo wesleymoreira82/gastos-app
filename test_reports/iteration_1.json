@@ -1,0 +1,44 @@
+{
+  "summary": "Frontend-only mobile testing on Expo web preview (390x844). Full happy-path validated: home hero + today total, FAB → Novo gasto modal, amount entry as cents (digitar 5000 → R$ 50,00), category picker (12 cats), date today, description, save → router.back → home total updated (R$ 87,50 → R$ 137,50) and new expense appears. Tap expense row opens Editar gasto modal with delete icon. Gastos tab: 7 period chips (period-chips-*) and 13 category chips (incl. 'todas') work. Gráficos tab: 3 range segments (7/14/30d) and 3 comparative segments (Dia/Semana/Mês) functional, bars + donut rendered. Config tab: resumo com fixos R$ 1.355,00 (74%), menu-fixos e menu-categorias visíveis. Categorias (cat-add → cat-save) e Gastos fixos (fixo-add → fixo-save, 3 seed fixos: Aluguel/Internet/Netflix) abrem corretamente. Seed de 12 gastos nos últimos 7 dias confirmado (Últimos 7 dias total R$ 747,50). No deprecated expo packages detected. One non-blocking React warning surfaces as a user-visible error toast (see below).",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Toast / ErrorBoundary (src/components/toast.tsx)",
+        "issue": "React dev warning 'Invalid DOM property `transform-origin`. Did you mean `transformOrigin`?' is being surfaced to users as a visible red error toast on top of the UI (seen on Gráficos, Config, Fixos screens). Warning originates from a third-party SVG/chart component (not from app source). Users should not see internal console warnings; filter non-fatal warnings in the custom toast/ErrorBoundary, or fix the invalid DOM attribute at the chart component (react-native-svg / donut). Reference: /app/frontend/src/components/toast.tsx and /app/frontend/src/components/category-donut.tsx or daily-bar-chart.tsx",
+        "testID": "n/a",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "home/(tabs)/index",
+        "issues": [
+          "FAB floats over the 'Últimos 7 dias' panel on home at viewport 390x844, slightly overlapping the 'Média/dia' value area. Consider adding extra bottom padding to the ScrollView when FAB is present (currently paddingBottom: spacing.xxxl * 2, but FAB sits at bottom:60+insets+12)."
+        ]
+      }
+    ],
+    "react_native_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Fix or suppress the user-facing error toast surfacing dev warnings (Invalid DOM property transform-origin). Either (a) filter non-fatal console warnings in the custom toast system so they don't render for end users, or (b) fix the underlying prop in the chart component triggering it.",
+    "Slightly increase ScrollView bottom padding on home so the FAB doesn't overlap the 'Últimos 7 dias' panel on small viewports."
+  ],
+  "critical_code_review_comments": [
+    "expense-form.tsx uses a hidden TextInput + Pressable overlay for amount entry — works on web, but ensure autoFocus/keyboard works on iOS/Android native (web preview tested only).",
+    "Date-next button is correctly disabled when dateISO >= today (no future dates allowed) — good UX guardrail.",
+    "No deprecated Expo packages (expo-av/expo-barcode-scanner/expo-background-fetch) detected."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A (frontend-only testing)", "frontend": "100% core flows"},
+  "seed_data_creation": "No seed data created by test agent — app auto-seeds on first run via AsyncStorage (verified: 12 expenses in last 7 days + 3 fixos: Aluguel/Internet/Netflix + 12 default categories).",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "App is 100% local-first using AsyncStorage. All testIDs documented work. Amount input accepts digits-as-cents ('5000' → R$ 50,00). Modals open as separate routes (expo-router presentation:'modal'). To test modals via Playwright, click FAB/row and page navigates to /add-expense or /edit-expense/:id. Use chr(34) trick for quotes in dynamic testID selectors inside f-strings. All 4 tabs render correctly.",
+  "rca_of_issue": "Error toast 'Invalid DOM property transform-origin' originates from React's warning when a web-only DOM prop uses kebab-case instead of camelCase. Most likely emitted by a chart dependency when rendered through react-native-web; the custom toast component is capturing console.error output and displaying it to users. Fix: whitelist/suppress React dev warnings in the toast layer (only show app-level errors) OR locate the chart element passing 'transform-origin' and switch to 'transformOrigin'."
+}
